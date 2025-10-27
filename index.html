@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora de promedio</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Vue 3 CDN -->
+
+    <script src="https://unpkg.com/vue@3.5.11/dist/vue.global.prod.js"></script>
+  </head>
+
+  <body id="app" class="bg-light">
+    <div class="d-flex justify-content-center align-items-center vh-100">
+      <div class="text-center p-4 border rounded shadow bg-white">
+        <h1 class="text-center mx-4 my-0">Calculadora de Promedio</h1>
+        <hr class="my-4" />
+        <div class="container py-2">
+          <div class="card p-0 border-0">
+            <div class="row">
+              <form id="notas_form" @submit.prevent="enviarForm">
+                <div class="row">
+                  <div class="col mb-3">
+                    <label class="form-label">Actividad 1 (20%)</label>
+                    <input
+                      type="number"
+                      min="0.00"
+                      max="10.00"
+                      step="0.01"
+                      v-model="form.actividad_1"
+                      class="form-control"
+                      placeholder="Ingrese una nota"
+                      required
+                    />
+                  </div>
+                  <div class="col mb-3">
+                    <label class="form-label">Actividad 2 (20%)</label>
+                    <input
+                      type="number"
+                      min="0.00"
+                      max="10.00"
+                      step="0.01"
+                      v-model="form.actividad_2"
+                      class="form-control"
+                      placeholder="Ingrese una nota"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col mb-3">
+                    <label class="form-label">Actividad 3 (20%)</label>
+                    <input
+                      type="number"
+                      min="0.00"
+                      max="10.00"
+                      step="0.01"
+                      v-model="form.actividad_3"
+                      class="form-control"
+                      placeholder="Ingrese una nota"
+                      required
+                    />
+                  </div>
+                  <div class="col mb-3">
+                    <label class="form-label">Proyecto Final (40%)</label>
+                    <input
+                      type="number"
+                      min="0.00"
+                      max="10.00"
+                      step="0.01"
+                      v-model="form.proyecto_final"
+                      class="form-control"
+                      placeholder="Ingrese una nota"
+                      required
+                    />
+                  </div>
+                </div>
+                <hr class="my-4" />
+                <div class="row">
+                  <div class="col mb-3">
+                    <div class="btn-group" role="group" aria-label="Botones">
+                      <button type="submit" class="btn btn-dark">
+                        Calcular Promedio
+                      </button>
+                      <button
+                        type="button"
+                        @click="limpiarForm"
+                        class="btn btn-secondary"
+                      >
+                        Limpiar Formulario
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="staticBackdrop"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        tabindex="-1"
+        aria-labelledby="staticBackdropLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="staticBackdropLabel">Promedio</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <strong>Promedio de la asignatura:</strong> {{ promedio }} <br />
+              <strong>Estado:</strong> {{ estado }}
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Vue app -->
+    <script src="./app.js"></script>
+  </body>
+</html>
