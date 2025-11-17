@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestor de Tareas</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        background: #f7f7f7;
+      }
+
+      /* Personalizacion de las notificaciones */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+      }
+
+      /* Personalizacion de las cards */
+      .card {
+        border-radius: 15px;
+      }
+
+      /* Personalizacion de las tablas */
+      .table {
+        border-radius: 10px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app" class="container py-5">
+      <!-- Notificacion Toast Bootstrap-->
+      <div class="toast-container">
+        <div
+          id="toast"
+          class="toast align-items-center text-white bg-primary border-0"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div class="d-flex">
+            <div class="toast-body">{{ toastMessage }}</div>
+            <button
+              type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast"
+            ></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Encabezado -->
+      <div class="text-center mb-4">
+        <h1 class="fw-bold">📋 Gestor de Tareas</h1>
+        <p class="text-muted">Agrega, edita y elimina tareas fácilmente</p>
+      </div>
+
+      <!-- Tabla listando las tareas -->
+      <div class="card shadow p-4 bg-white">
+        <div class="container justify-content-end">
+          <!-- Encabezado extra de la tabla -->
+          <div class="row">
+            <div class="col text-start">
+              <h4 class="mb-3">Tareas Registradas</h4>
+            </div>
+            <div class="col text-end">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#modalAgregar"
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Tabla de tareas -->
+        <div class="table-responsive">
+          <table class="table text-center align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>#</th>
+                <th>Tarea</th>
+                <th>Prioridad</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <!-- Si no hay tareas -->
+              <tr v-if="tareas.length === 0">
+                <td colspan="4" class="text-muted py-3">
+                  No hay tareas registradas
+                </td>
+              </tr>
+
+              <!-- Lista -->
+              <tr
+                v-for="(tarea, index) in tareas"
+                :key="index"
+                :class="clasePrioridad(tarea.prioridad)"
+              >
+                <td>{{ index + 1 }}</td>
+                <td>{{ tarea.nombre }}</td>
+                <td>{{ tarea.prioridad }}</td>
+
+                <td class="d-flex justify-content-center gap-2">
+                  <button
+                    class="btn btn-warning btn-sm"
+                    @click="abrirModalEditar(index)"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    class="btn btn-danger btn-sm"
+                    @click="confirmarEliminacion(index)"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Agregar -->
+      <div class="modal fade" id="modalAgregar" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Encabezado modal -->
+            <div class="modal-header text-white bg-primary">
+              <h5 class="modal-title">Agregar tarea</h5>
+              <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- Formulario -->
+            <form @submit.prevent="agregarTarea">
+              <!-- Contenido del Modal -->
+              <div class="modal-body">
+                <label class="form-label">Nombre de la tarea</label>
+                <input
+                  type="text"
+                  v-model.trim="nuevaTarea.nombre"
+                  class="form-control mb-3"
+                  placeholder="Ej: Preparar diapositivas"
+                  required
+                />
+
+                <label class="form-label">Prioridad</label>
+                <select
+                  v-model="nuevaTarea.prioridad"
+                  class="form-select"
+                  required
+                >
+                  <option disabled value="">Seleccione una prioridad</option>
+                  <option value="Alta">Alta</option>
+                  <option value="Media">Media</option>
+                  <option value="Baja">Baja</option>
+                </select>
+              </div>
+
+              <!-- Botones de accion del Modal -->
+              <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                  Cancelar
+                </button>
+                <button class="btn btn-primary" type="submit">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Editar -->
+      <div class="modal fade" id="modalEditar" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Encabezado modal -->
+            <div class="modal-header bg-warning">
+              <h5 class="modal-title">Editar tarea</h5>
+              <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- Formulario -->
+            <form @submit.prevent="guardarEdicion">
+              <!-- Contenido del Modal -->
+              <div class="modal-body">
+                <label class="form-label">Nombre</label>
+                <input
+                  type="text"
+                  class="form-control mb-3"
+                  v-model="editarTarea.nombre"
+                  required
+                />
+
+                <label class="form-label">Prioridad</label>
+                <select
+                  v-model="editarTarea.prioridad"
+                  class="form-select"
+                  required
+                >
+                  <option value="Alta">Alta</option>
+                  <option value="Media">Media</option>
+                  <option value="Baja">Baja</option>
+                </select>
+              </div>
+
+              <!-- Botones de accion del Modal -->
+              <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                  Cancelar
+                </button>
+                <button class="btn btn-warning" type="submit">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Confirmación de Eliminación -->
+      <div class="modal fade" id="modalEliminar" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <!-- Encabezado modal -->
+            <div class="modal-header bg-danger text-white">
+              <h5 class="modal-title">Confirmar eliminación</h5>
+              <button
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+
+            <!-- Contenido del Modal -->
+            <div class="modal-body">
+              ¿Seguro que deseas eliminar esta tarea?
+            </div>
+
+            <!-- Botones de accion del Modal -->
+            <div class="modal-footer">
+              <button class="btn btn-secondary" data-bs-dismiss="modal">
+                Cancelar
+              </button>
+              <button class="btn btn-danger" @click="eliminarTarea">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Codigo de la App -->
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            // tareas iniciales
+            tareas: [],
+
+            // datos iniciales de objectos temporales
+            nuevaTarea: { nombre: "", prioridad: "" },
+            editarTarea: { nombre: "", prioridad: "" },
+
+            // dato de notificacion
+            toastMessage: "",
+            // datos para editar / eliminar
+            indiceEditando: null,
+            indexAEliminar: null,
+          };
+        },
+
+        methods: {
+          // funcion para mostrar la notificacion toast
+          mostrarToast(msg, tipo = "primary") {
+            // se toma el mensaje
+            this.toastMessage = msg;
+            // se obtiene el elmento html
+            const toastEl = document.getElementById("toast");
+            // se remueve cualquier clase previa de las siguientes
+            toastEl.classList.remove(
+              "bg-primary",
+              "bg-success",
+              "bg-warning",
+              "bg-danger",
+            );
+            // se agrega la clase correspondiente para el color de fondo
+            toastEl.classList.add("bg-" + tipo);
+
+            // se crea la nueva instancia de toast bootstrap
+            const toast = new bootstrap.Toast(toastEl);
+            // se muestra la notificacion
+            toast.show();
+          },
+
+          // funcion para agregar una tarea
+          agregarTarea() {
+            // agregamos la tarea a la lista de tareas
+            this.tareas.push({ ...this.nuevaTarea });
+            // mostramos una notificacion de accion exitosa
+
+            // buscamos el modal de agregar para obtener su instancia
+            const modal = bootstrap.Modal.getInstance(
+              document.getElementById("modalAgregar"),
+            );
+            // ocultar el modal
+            modal.hide();
+
+            // mostramos una notificacion de accion exitosa
+            this.mostrarToast("Tarea agregada", "success");
+            // asignamos los campos del formulario en blanco nuevamente
+            this.nuevaTarea.nombre = "";
+            this.nuevaTarea.prioridad = "";
+          },
+
+          // funcion para cargar el modal con los datos de la tarea a editar
+          abrirModalEditar(index) {
+            // obtener el indice
+            this.indiceEditando = index;
+            // cargar la tarea
+            this.editarTarea = { ...this.tareas[index] };
+
+            // mostrar el modal con los datos
+            const modal = new bootstrap.Modal("#modalEditar");
+            modal.show();
+          },
+
+          // funcion para guardar la edicion de una tarea
+          guardarEdicion() {
+            // obtener los datos editados y guardarlos en el indice
+            this.tareas[this.indiceEditando] = { ...this.editarTarea };
+
+            // mostramos una notificacion de accion exitosa
+            this.mostrarToast("Tarea actualizada", "warning");
+
+            // cerrar el modal de editar la tarea
+            const modal = bootstrap.Modal.getInstance(
+              document.getElementById("modalEditar"),
+            );
+            modal.hide();
+          },
+
+          // funcion para lanzar un modal de confirmar eliminacion
+          confirmarEliminacion(index) {
+            // obtener el indice de la tarea a eliminar
+            this.indexAEliminar = index;
+            // mostrar el modal
+            const modal = new bootstrap.Modal("#modalEliminar");
+            modal.show();
+          },
+
+          // funcion para eliminar una tarea
+          eliminarTarea() {
+            // realizar la eliminacion del objecto en memoria
+            this.tareas.splice(this.indexAEliminar, 1);
+            // mostramos una notificacion de accion exitosa
+            this.mostrarToast("Tarea eliminada", "danger");
+
+            // cerrar el modal de confirmacion de eliminacion
+            const modal = bootstrap.Modal.getInstance(
+              document.getElementById("modalEliminar"),
+            );
+            modal.hide();
+          },
+
+          // funcion para obtener las clases de color en funcion de la prioridad
+          clasePrioridad(prioridad) {
+            return {
+              Alta: "table-danger",
+              Media: "table-warning",
+              Baja: "table-success",
+            }[prioridad];
+          },
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
